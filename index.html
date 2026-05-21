@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Complex Simulator & Advanced Solver</title>
+
+<style>
+    body{
+        margin:0;
+        font-family:Arial, sans-serif;
+        background:linear-gradient(135deg,#e0f2ff,#f7f7f7);
+        text-align:center;
+        min-height: 100vh;
+    }
+
+    h2{
+        margin-top:20px;
+        color:#1f3c88;
+    }
+
+    .container{
+        width:90%;
+        margin:auto;
+        padding-bottom: 30px;
+    }
+
+    .card{
+        background:white;
+        padding:20px;
+        margin:15px auto;
+        border-radius:12px;
+        box-shadow:0 4px 10px rgba(0,0,0,0.1);
+        width:80%;
+        max-width: 600px;
+        transition: 0.3s;
+    }
+
+    /* Tampilan Halaman Depan (Input Nama) */
+    .welcome-screen {
+        max-width: 450px;
+        margin-top: 10vh;
+        border-top: 5px solid #1f3c88;
+    }
+    
+    .welcome-screen h3 {
+        color: #1f3c88;
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+
+    .welcome-screen input {
+        width: 80%;
+        padding: 10px;
+        font-size: 16px;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .btn-start {
+        background: #ffcc00 !important;
+        color: #1f3c88 !important;
+        font-size: 16px;
+        padding: 10px 20px !important;
+        width: 85%;
+    }
+
+    .btn-start:hover {
+        background: #ffe066 !important;
+    }
+
+    /* Tampilan Header Sapaan setelah masuk */
+    .user-banner {
+        background: #1f3c88;
+        color: white;
+        text-align: left;
+        padding: 12px 20px;
+    }
+    .user-banner h3 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    input,select,button{
+        padding:8px;
+        margin:5px;
+        border-radius:6px;
+        border:1px solid #ccc;
+    }
+
+    .input-group {
+        margin: 10px 0;
+    }
+
+    .inline-label {
+        display: inline-block;
+        width: 30px;
+        font-weight: bold;
+        color: #1f3c88;
+    }
+
+    button{
+        background:#1f3c88;
+        color:white;
+        cursor:pointer;
+        transition:0.3s;
+        font-weight: bold;
+    }
+
+    button:hover{
+        background:#2f5fd0;
+    }
+
+    canvas{
+        background:white;
+        border-radius:10px;
+        border:1px solid #aaa;
+        margin-top:15px;
+        max-width: 100%;
+    }
+
+    .title{
+        font-weight:bold;
+        color:#1f3c88;
+        margin-bottom:5px;
+    }
+
+    #output{
+        font-size:16px;
+    }
+
+    .zoomBox{
+        margin:10px auto;
+    }
+</style>
+
+</head>
+
+<body>
+
+<div class="container" id="halamanLogin">
+    <div class="card welcome-screen">
+        <h3>Selamat Datang!</h3>
+        <p style="color: #555; margin-bottom: 20px;">Silakan masukkan nama Anda untuk memulai aplikasi Lab Bilangan Kompleks</p>
+        
+        <input type="text" id="namaUser" placeholder="Tulis nama Anda di sini..." autocomplete="off">
+        <br>
+        <button class="btn-start" onclick="masukKeKalkulator()">Mulai Mengerjakan Soal &rarr;</button>
+    </div>
+</div>
+
+
+<div class="container" id="halamanKalkulator" style="display: none;">
+    
+    <div class="card user-banner">
+        <h3 id="teksSapaan">Menghubungkan...</h3>
+    </div>
+
+    <h2>Simulasi & Solver Fungsi Bilangan Kompleks</h2>
+
+    <div class="card">
+        <span class="title">Pilih Mode Kerja:</span> 
+        <select id="mode" onchange="switchMode()">
+            <option value="simulasi">Simulasi f(z)</option>
+            <option value="solver">Advanced Solver (az + b = c)</option>
+        </select>
+    </div>
+
+    <div class="card zoomBox">
+        Skala Grafik (Zoom):
+        <input type="range" id="zoom" min="5" max="80" value="25" oninput="drawLast()">
+        <span id="zoomVal">25</span>
+    </div>
+
+    <div class="card" id="simulasiBox">
+        <div class="title">Input Nilai Variabel z</div>
+        z =
+        <input type="number" id="real" value="1" placeholder="real">
+        +
+        <input type="number" id="imag" value="1" placeholder="imag"> i
+
+        <br><br>
+
+        Struktur:
+        <select id="modeFungsi" onchange="toggleSecondFunction()">
+            <option value="single">1 Fungsi Tunggal</option>
+            <option value="double">2 Fungsi (Komposisi Beruntun)</option>
+        </select>
+
+        <br>
+
+        Fungsi 1:
+        <select id="fungsi1">
+            <option value="z">z</option>
+            <option value="z2">z²</option>
+            <option value="z3">z³</option>
+            <option value="zplus1">z + 1</option>
+            <option value="threez">3z</option>
+            <option value="conj">z̄ (Konjugat)</option>
+        </select>
+
+        <div id="fungsi2Box" style="display:none">
+            Fungsi 2:
+            <select id="fungsi2">
+                <option value="z">z</option>
+                <option value="z2">z²</option>
+                <option value="z3">z³</option>
+                <option value="zplus1">z + 1</option>
+                <option value="threez">3z</option>
+                <option value="conj">z̄ (Konjugat)</option>
+            </select>
+        </div>
+
+        <br>
+        <button onclick="simulasi()">Hitung & Petakan Hasil</button>
+    </div>
+
+    <div class="card" id="solverBox" style="display:none">
+        <div class="title">Advanced Solver: az + b = c</div>
+        <p style="font-size: 12px; color: #666; margin: 0 0 15px 0;">Sistem pencari nilai koordinat z tunggal secara otomatis.</p>
+        
+        <div class="input-group">
+            <span class="inline-label">a =</span>
+            <input type="number" id="aReal" value="1" placeholder="real"> + 
+            <input type="number" id="aImag" value="0" placeholder="imag"> i
+        </div>
+
+        <div class="input-group">
+            <span class="inline-label">b =</span>
+            <input type="number" id="bReal" value="0" placeholder="real"> + 
+            <input type="number" id="bImag" value="0" placeholder="imag"> i
+        </div>
+
+        <div class="input-group">
+            <span class="inline-label">c =</span>
+            <input type="number" id="cReal" value="4" placeholder="real"> + 
+            <input type="number" id="cImag" value="0" placeholder="imag"> i
+        </div>
+
+        <button onclick="solveAdvancedLinear()">Hitung Nilai Eksak z</button>
+    </div>
+
+    <div class="card" id="output">Silakan lakukan perhitungan di atas, hasilnya akan terekam di sini.</div>
+
+    <canvas id="canvas" width="650" height="500"></canvas>
+
+</div>
+
+<script>
+// Logika transisi halaman
+function masukKeKalkulator() {
+    let nama = document.getElementById("namaUser").value;
+    
+    // Jika kolom nama dikosongkan, beri nama default
+    if(nama.trim() === "") {
+        nama = "Mahasiswa";
+    }
+    
+    // Set teks ucapan selamat datang di banner atas
+    document.getElementById("teksSapaan").innerText = "Selamat Datang, " + nama + " ! Selamat menganalisis.";
+    
+    // Sembunyikan halaman login, lalu tampilkan halaman kalkulator utama
+    document.getElementById("halamanLogin").style.display = "none";
+    document.getElementById("halamanKalkulator").style.display = "block";
+    
+    // Gambar ulang sumbu grafik agar pas saat canvas dimunculkan
+    draw(0,0,0,0);
+}
+
+let lastData=null;
+
+// mode switch
+function switchMode(){
+    let m=document.getElementById("mode").value;
+    document.getElementById("simulasiBox").style.display=(m==="simulasi")?"block":"none";
+    document.getElementById("solverBox").style.display=(m==="solver")?"block":"none";
+    document.getElementById("output").innerHTML = "Mode diganti. Silakan masukkan angka dan klik hitung.";
+}
+
+// fungsi 2 toggle
+function toggleSecondFunction(){
+    let m=document.getElementById("modeFungsi").value;
+    document.getElementById("fungsi2Box").style.display=(m==="double")?"block":"none";
+}
+
+// fungsi aljabar variabel kompleks
+function applyFunction(a,b,f){
+    if(f==="z") return [a,b];
+    if(f==="z2") return [a*a-b*b,2*a*b];
+    if(f==="z3") return [a*a*a-3*a*b*b,3*a*a*b-b*b*b];
+    if(f==="zplus1") return [a+1,b];
+    if(f==="threez") return [3*a,3*b];
+    if(f==="conj") return [a,-b];
+    return[a,b];
+}
+
+// eksekusi simulasi pemetaan
+function simulasi(){
+    let a=parseFloat(document.getElementById("real").value) || 0;
+    let b=parseFloat(document.getElementById("imag").value) || 0;
+
+    let f1=document.getElementById("fungsi1").value;
+    let [r1,i1]=applyFunction(a,b,f1);
+
+    let finalR=r1, finalI=i1;
+    let mode=document.getElementById("modeFungsi").value;
+
+    if(mode==="double"){
+        let f2=document.getElementById("fungsi2").value;
+        [finalR,finalI]=applyFunction(r1,i1,f2);
+    }
+
+    let tanda = finalI >= 0 ? "+" : "-";
+    let absI = Math.abs(finalI);
+
+    document.getElementById("output").innerHTML=
+    `<div class='title'>HASIL SIMULASI PEMETAAN</div>
+    z awal = ${a} + ${b}i <br>
+    f(z) akhir = ${finalR} ${tanda} ${absI}i`;
+
+    lastData={a,b,ar:finalR,ai:finalI};
+    draw(a,b,finalR,finalI);
+}
+
+// ADVANCED SOLVER: az + b = c  ==> z = (c - b) / a
+function solveAdvancedLinear(){
+    let ar = parseFloat(document.getElementById("aReal").value) || 0;
+    let ai = parseFloat(document.getElementById("aImag").value) || 0;
+    
+    let br = parseFloat(document.getElementById("bReal").value) || 0;
+    let bi = parseFloat(document.getElementById("bImag").value) || 0;
+    
+    let cr = parseFloat(document.getElementById("cReal").value) || 0;
+    let ci = parseFloat(document.getElementById("cImag").value) || 0;
+
+    if(ar === 0 && ai === 0){
+        document.getElementById("output").innerHTML = "<b style='color:red;'>Error: Nilai 'a' tidak boleh 0 (Pembagian dengan nol)!</b>";
+        return;
+    }
+
+    let pembilangR = cr - br;
+    let pembilangI = ci - bi;
+
+    let penyebut = ar*ar + ai*ai;
+    
+    let zr = (pembilangR * ar + pembilangI * ai) / penyebut;
+    let zi = (pembilangI * ar - pembilangR * ai) / penyebut;
+
+    let tanda = zi >= 0 ? "+" : "-";
+    let absZi = Math.abs(zi);
+
+    document.getElementById("output").innerHTML=
+    `<div class='title'>HASIL ADVANCED SOLVER</div>
+    Persamaan: (${ar}+${ai}i)z + (${br}+${bi}i) = ${cr}+${ci}i <br>
+    <b>Solusi z = ${zr.toFixed(3)} ${tanda} ${absZi.toFixed(3)}i</b>`;
+
+    lastData={a:0, b:0, ar:zr, ai:zi};
+    draw(0,0,zr,zi);
+}
+
+// pengatur skala grid
+function getScale(){
+    let z=document.getElementById("zoom").value;
+    document.getElementById("zoomVal").innerText=z;
+    return z;
+}
+
+function drawLast(){
+    if(!lastData) return;
+    draw(lastData.a,lastData.b,lastData.ar,lastData.ai);
+}
+
+// sistem penggambaran bidang argand
+function draw(a,b,ar,ai){
+    let c=document.getElementById("canvas");
+    let ctx=c.getContext("2d");
+
+    ctx.clearRect(0,0,650,500);
+
+    let center=325; 
+    let centerY=250; 
+    let scale=parseInt(getScale());
+
+    // gambarkan garis grid abu-abu halus
+    ctx.strokeStyle="#f2f2f2";
+    for(let i=-50;i<=50;i++){
+        ctx.beginPath();
+        ctx.moveTo(center+i*scale,0);
+        ctx.lineTo(center+i*scale,500);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0,centerY+i*scale);
+        ctx.lineTo(650,centerY+i*scale);
+        ctx.stroke();
+    }
+
+    // gambarkan sumbu utama X (Real) dan Y (Imajiner)
+    ctx.strokeStyle="#333";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0,centerY); ctx.lineTo(650,centerY); 
+    ctx.moveTo(center,0); ctx.lineTo(center,500); 
+    ctx.stroke();
+    ctx.lineWidth = 1;
+
+    ctx.fillStyle = "#666";
+    ctx.font = "12px Arial";
+    ctx.fillText("Real (x)", 600, centerY - 10);
+    ctx.fillText("Imag (y)", center + 10, 20);
+
+    // Tandai titik koordinat input (Warna Biru)
+    ctx.fillStyle="blue";
+    ctx.beginPath();
+    ctx.arc(center+a*scale,centerY-b*scale,6,0,Math.PI*2);
+    ctx.fill();
+
+    // Tandai titik koordinat output hasil perhitungan (Warna Merah)
+    ctx.fillStyle="red";
+    ctx.beginPath();
+    ctx.arc(center+ar*scale,centerY-ai*scale,6,0,Math.PI*2);
+    ctx.fill();
+
+    // Buat garis penunjuk arah pergeseran vektor (Garis Hijau)
+    ctx.strokeStyle="green";
+    ctx.beginPath();
+    ctx.moveTo(center+a*scale,centerY-b*scale);
+    ctx.lineTo(center+ar*scale,centerY-ai*scale);
+    ctx.stroke();
+}
+
+// Inisialisasi awal koordinat 0,0 saat halaman pertama dimuat
+window.onload = function() {
+    draw(0,0,0,0);
+}
+</script>
+
+</body>
+</html>
